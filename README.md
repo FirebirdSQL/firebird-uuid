@@ -76,7 +76,7 @@ bash (using `uuid` utility):
 ```
 
 python:
-```
+```python
 >>> import uuid
 >>> uuid.uuid5(uuid.NAMESPACE_OID, "1.3.6.1.4.1.53446")
 UUID('6f8c9fea-acfa-5b49-af8a-11aca8d0c4a0')
