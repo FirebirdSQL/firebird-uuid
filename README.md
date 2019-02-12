@@ -30,7 +30,7 @@ Each OID is created by a Registration Authority. Each of these authorities may, 
 
 The [Firebird Foundation Incorporated](https://firebirdsql.org/en/firebird-foundation) obtained a [PEN](https://www.iana.org/assignments/enterprise-numbers/enterprise-numbers) (Private Enterprise Number) from [IANA](https://www.iana.org), and thus become a registered owner of OID _1.3.6.1.4.1.53446_ (iso.org.dod.internet.private.enterprise.firebird-foundation-inc). This repository is used to manage sub-tree of OIDs under this namespace, that are used by Firebird Foundation and the [Firebird Project](https://www.firebirdsql.org).
 
-## How it works
+# How it works
 
 The OID hierarchy is controlled by a set of YAML files, each file describing one level in the tree hierarchy (that is, the root node of the child tree and all assigned nodes for children). The `root.oid` file describes the OID of highest level (assigned by IANA).
 
@@ -64,7 +64,7 @@ children:
 
 Fields `name`,`description`,`contact`,`email` and `site` in `children` record SHOULD have the same values like fields of the same name in `node` record of the YAML file describing the child node. If they differ in content, the values present in `node` record take precedence over values present in `children` record.
 
-## Using OIDs to generate UUIDs
+# Using OIDs to generate UUIDs
 
 Here are some examples that generate the UUID for OID assigned to the Firebird Foundation.
 
