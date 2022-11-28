@@ -1,7 +1,7 @@
 #coding:utf-8
 #
 # PROGRAM/MODULE: firebird-uuid
-# FILE:           firebird/uuid/model.py
+# FILE:           firebird/uuid/_model.py
 # DESCRIPTION:    Model for Firebird OID registry
 # CREATED:        11.11.2022
 #
@@ -55,6 +55,20 @@ class NodeType(Enum):
 
 class Node(Distinct):
     """OID node.
+
+    Arguments:
+        parent: Parent node (`None` for root node)
+        oid: Node OID. When `None`, OID is constructed from parent OID and `number` parameter.
+        number: Node order number in parent. Part of node OID for child nodes.
+        name: Node name.
+        description: Node description.
+        contact: Contact person for this node.
+        email: E-mail of contact person.
+        site: URL to home site of node maintainer
+        parent_spec: URL to YAML specification of parent node. If not specified, it's
+          taken from `parent` node.
+        node_spec: URL to node TAML specification
+        node_type: Node type. If not specified, it's derived from `node_spec`.
     """
     def __init__(self, *, parent: Node=None, oid: str=None, number: int=None, name: str=None,
                  description: str=None, contact: str=None, email: str=None, site: str=None,

@@ -64,12 +64,11 @@ Each file has the following format::
 
 from __future__ import annotations
 from typing import Tuple
+import os
 import re
+from urllib.request import url2pathname
 import requests
 import yaml
-
-from urllib.request import url2pathname
-import os
 
 
 class LocalFileAdapter(requests.adapters.BaseAdapter):

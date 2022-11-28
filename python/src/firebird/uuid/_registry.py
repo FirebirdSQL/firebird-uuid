@@ -42,7 +42,7 @@ from queue import SimpleQueue
 from toml import dumps, loads
 from firebird.base.types import Error, STOP
 from firebird.base.collections import Registry
-from firebird.uuid.model import NodeType, Node, build_tree
+from ._model import NodeType, Node, build_tree
 
 class OIDRegistry(Registry):
     """Firebird OID registry.
