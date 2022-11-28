@@ -1,0 +1,31 @@
+########################
+Firebird UUID Management
+########################
+
+The `firebird-uuid` package provides official tools to work with OID namespace maintained
+by `Firebird Project`_.
+
+
+Content
+*******
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   reference
+   changelog
+
+Indices and tables
+******************
+
+* :ref:`genindex`
+* :ref:`modindex`
+
+.. _IBPhoenix: http://www.ibphoenix.com
+.. _Python: http://python.org
+.. _Firebird: http://www.firebirdsql.org
+.. _Firebird Project: http://www.firebirdsql.org
+.. _IBPhoenix: http://www.ibphoenix.com
+.. _Dash: https://kapeli.com/dash
+.. _Zeal: https://zealdocs.org/

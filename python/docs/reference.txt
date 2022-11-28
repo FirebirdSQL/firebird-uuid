@@ -1,0 +1,49 @@
+
+#######################
+Firebird-uuid Reference
+#######################
+
+firebird.uuid namespace
+=======================
+
+You can import next components directly from `firebird.uuid` module:
+
+- from `.model`: `.NodeType`, `.Node`, `.IANA_ROOT_NAME`
+- from `.spec`: `.get_specification`, `.get_specifications`, `.parse_specifications`, `.ROOT_SPEC`
+- from `.registry`: `.registry`, `.OIDRegistry`
+
+Sub-modules
+===========
+
+.. module:: firebird.uuid.spec
+   :synopsis:
+
+.. autodata:: ROOT_SPEC
+
+.. autoclass:: LocalFileAdapter
+
+.. autofunction:: get_specification
+.. autofunction:: get_specifications
+.. autofunction:: parse_specifications
+.. autofunction:: validate_dict
+.. autofunction:: validate_spec
+.. autofunction:: pythonize
+.. autofunction:: pythonize_spec
+
+.. module:: firebird.uuid.model
+   :synopsis:
+
+.. autodata:: IANA_ROOT_NAME
+
+.. autoclass:: NodeType
+.. autoclass:: Node
+
+.. autofunction:: build_tree
+.. autofunction:: validate_parent_child_equality
+
+.. module:: firebird.uuid.registry
+   :synopsis:
+
+.. autodata:: registry
+
+.. autoclass:: OIDRegistry
