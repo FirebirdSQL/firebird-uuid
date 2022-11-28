@@ -74,10 +74,7 @@ import os
 
 class LocalFileAdapter(requests.adapters.BaseAdapter):
     """Protocol Adapter to allow Requests to GET file:// URLs
-
-    @todo: Properly handle non-empty hostname portions.
     """
-
     @staticmethod
     def _chkpath(method, path):
         """Return an HTTP status for the given filesystem path."""
@@ -96,10 +93,6 @@ class LocalFileAdapter(requests.adapters.BaseAdapter):
 
     def send(self, req, **kwargs):  # pylint: disable=unused-argument
         """Return the file specified by the given request
-
-        @type req: C{PreparedRequest}
-        @todo: Should I bother filling `response.headers` and processing
-               If-Modified-Since and friends using `os.stat`?
         """
         path = os.path.normcase(os.path.normpath(url2pathname(req.path_url)))
         response = requests.Response()

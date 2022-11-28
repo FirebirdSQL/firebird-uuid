@@ -10,7 +10,7 @@ You can import next components directly from `firebird.uuid` module:
 
 - from `.model`: `.NodeType`, `.Node`, `.IANA_ROOT_NAME`
 - from `.spec`: `.get_specification`, `.get_specifications`, `.parse_specifications`, `.ROOT_SPEC`
-- from `.registry`: `.registry`, `.OIDRegistry`
+- from `~.firebird.uuid.registry`: `~firebird.uuid.registry.registry`, `.OIDRegistry`
 
 Sub-modules
 ===========
