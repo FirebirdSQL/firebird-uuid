@@ -44,6 +44,6 @@ Sub-modules
 .. module:: firebird.uuid.registry
    :synopsis:
 
-.. autodata:: registry
+.. autodata:: firebird.uuid.registry.registry
 
-.. autoclass:: OIDRegistry
+.. autoclass:: firebird.uuid.registry.OIDRegistry
