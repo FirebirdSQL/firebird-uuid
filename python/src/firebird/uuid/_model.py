@@ -125,7 +125,6 @@ class Node(Distinct):
         if parent is not None:
             self.parent_spec = parent.node_spec
     def as_toml_dict(self) -> Dict:
-
         """Returns dictionary with instance data suitable for storage in TOML format
         (values that are not of basic type are converted to string).
         """

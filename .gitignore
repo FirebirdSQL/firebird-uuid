@@ -133,4 +133,4 @@ dmypy.json
 *.wpu
 
 # Sphinx build
-docs/_build
+python/docs/_build

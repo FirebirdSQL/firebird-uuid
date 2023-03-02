@@ -4,9 +4,7 @@ import sys
 from pprint import pprint
 from io import StringIO
 from toml import loads
-from firebird.uuid.spec import get_specifications, parse_specifications
-from firebird.uuid.model import Node, build_tree
-from firebird.uuid.registry import registry
+from firebird.uuid import get_specifications, parse_specifications, Node, oid_registry
 
 def print_node(node: Node, indent=0, _to=None) -> None:
     out = sys.stdout if _to is None else _to
@@ -53,22 +51,22 @@ def main():
     #txt_1 = printout.getvalue()
     #print_node(root)
     ##
-    registry.update_from_specifications(specifications)
+    oid_registry.update_from_specifications(specifications)
     #spec2, err2 = get_specifications('https://raw.githubusercontent.com/FirebirdSQL/saturnin-core/master/oid/micros.oid')
     #spec2, err2 = parse_specifications(spec2)
-    #registry.update_from_specifications(spec2)
+    #oid_registry.update_from_specifications(spec2)
     printout = StringIO()
-    print_node(registry.get_root(), _to=printout)
+    print_node(oid_registry.get_root(), _to=printout)
     txt_1 = printout.getvalue()
     #
-    toml = registry.as_toml()
+    toml = oid_registry.as_toml()
     print(toml)
     #
-    registry.clear()
-    registry.update_from_toml(toml)
-    #print_node(registry.get_root())
+    oid_registry.clear()
+    oid_registry.update_from_toml(toml)
+    #print_node(oid_registry.get_root())
     printout = StringIO()
-    print_node(registry.get_root(), _to=printout)
+    print_node(oid_registry.get_root(), _to=printout)
     txt_2 = printout.getvalue()
     #data = loads(toml)
     #nodes = []

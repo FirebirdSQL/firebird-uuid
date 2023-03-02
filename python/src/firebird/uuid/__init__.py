@@ -37,4 +37,4 @@
 
 from ._model import NodeType, Node, IANA_ROOT_NAME
 from ._spec import get_specification, get_specifications, parse_specifications, ROOT_SPEC
-from ._registry import registry, OIDRegistry
+from ._registry import oid_registry, OIDRegistry

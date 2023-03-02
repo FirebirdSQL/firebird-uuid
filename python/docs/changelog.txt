@@ -2,6 +2,11 @@
 Changelog
 #########
 
+Version 0.2.0
+=============
+
+Breaking change: `registry` renamed to `.oid_registry`.
+
 Version 0.1.0
 =============
 

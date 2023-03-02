@@ -120,11 +120,11 @@ class OIDRegistry(Registry):
                     raise Error(f"Node {uid} is not root and has no parent node")
         build_tree(self._reg.values())
     def as_toml(self) -> str:
-        """Return registry contents as TOML document.
+        """Returns registry content as TOML document.
         """
         nodes = {str(node.uid): node.as_toml_dict() for node in self._reg.values()}
         toml = dumps(nodes)
         return toml
 
 #: Firebird OID registry
-registry = OIDRegistry()
+oid_registry = OIDRegistry()

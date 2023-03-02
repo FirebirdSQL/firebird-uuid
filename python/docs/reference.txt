@@ -6,7 +6,7 @@ Firebird-uuid Reference
 
 .. autodata:: ROOT_SPEC
 .. autodata:: IANA_ROOT_NAME
-.. autodata:: registry
+.. autodata:: oid_registry
 
 .. autofunction:: get_specification
 .. autofunction:: get_specifications
