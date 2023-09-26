@@ -1,4 +1,6 @@
-#coding:utf-8
+# SPDX-FileCopyrightText: 2022-present The Firebird Projects <www.firebirdsql.org>
+#
+# SPDX-License-Identifier: MIT
 #
 # PROGRAM/MODULE: firebird-uuid
 # FILE:           firebird/uuid/__init__.py
@@ -25,13 +27,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
-# Copyright (c) 2021 Firebird Project (www.firebirdsql.org)
+# Copyright (c) 2022 Firebird Project (www.firebirdsql.org)
 # All Rights Reserved.
 #
 # Contributor(s): Pavel Císař (original code)
 #                 ______________________________________
 
-"""Package for Firebird OID registry.
+"""Official tools for working with the OID namespace managed by the Firebird Project.
 
 """
 

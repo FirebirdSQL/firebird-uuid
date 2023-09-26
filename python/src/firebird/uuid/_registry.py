@@ -1,4 +1,6 @@
-#coding:utf-8
+# SPDX-FileCopyrightText: 2022-present The Firebird Projects <www.firebirdsql.org>
+#
+# SPDX-License-Identifier: MIT
 #
 # PROGRAM/MODULE: firebird-uuid
 # FILE:           firebird/uuid/registry.py
@@ -25,7 +27,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
-# Copyright (c) 2021 Firebird Project (www.firebirdsql.org)
+# Copyright (c) 2022 Firebird Project (www.firebirdsql.org)
 # All Rights Reserved.
 #
 # Contributor(s): Pavel Císař (original code)
@@ -36,7 +38,7 @@
 """
 
 from __future__ import annotations
-from typing import List, Optional
+from typing import List, Optional, Dict
 import uuid
 from queue import SimpleQueue
 from toml import dumps, loads

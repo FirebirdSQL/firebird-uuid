@@ -1,4 +1,6 @@
-#coding:utf-8
+# SPDX-FileCopyrightText: 2022-present The Firebird Projects <www.firebirdsql.org>
+#
+# SPDX-License-Identifier: MIT
 #
 # PROGRAM/MODULE: firebird-uuid
 # FILE:           firebird/uuid/spec.py
@@ -25,7 +27,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
-# Copyright (c) 2021 Firebird Project (www.firebirdsql.org)
+# Copyright (c) 2022 Firebird Project (www.firebirdsql.org)
 # All Rights Reserved.
 #
 # Contributor(s): Pavel Císař (original code)
@@ -63,13 +65,14 @@ Each file has the following format::
 """
 
 from __future__ import annotations
-from typing import Tuple
+from typing import Tuple, Dict, Set
 import os
 import re
 from urllib.request import url2pathname
 import requests
 import yaml
 
+KeySet = Set[str]
 
 class LocalFileAdapter(requests.adapters.BaseAdapter):
     """Protocol Adapter to allow Requests to GET file:// URLs
@@ -136,11 +139,11 @@ ITEM_NUMBER = 'number'
 #KEY_ITEMS = (ITEM_OID, ITEM_NAME, ITEM_DESCRIPTION, ITEM_CONTACT, ITEM_EMAIL, ITEM_SITE,
              #ITEM_TYPE, ITEM_NODE_SPEC)
 
-SPEC_ITEMS = set((ITEM_NODE, ITEM_CHILDREN))
-NODE_ITEMS = set((ITEM_OID, ITEM_NAME, ITEM_DESCRIPTION, ITEM_CONTACT, ITEM_EMAIL,
-                  ITEM_SITE, ITEM_PARENT_SPEC, ITEM_TYPE))
-CHILD_ITEMS = set((ITEM_NUMBER, ITEM_NAME, ITEM_DESCRIPTION, ITEM_CONTACT, ITEM_EMAIL,
-                   ITEM_SITE, ITEM_NODE_SPEC))
+SPEC_ITEMS: KeySet = set((ITEM_NODE, ITEM_CHILDREN))
+NODE_ITEMS: KeySet = set((ITEM_OID, ITEM_NAME, ITEM_DESCRIPTION, ITEM_CONTACT, ITEM_EMAIL,
+                          ITEM_SITE, ITEM_PARENT_SPEC, ITEM_TYPE))
+CHILD_ITEMS: KeySet = set((ITEM_NUMBER, ITEM_NAME, ITEM_DESCRIPTION, ITEM_CONTACT, ITEM_EMAIL,
+                           ITEM_SITE, ITEM_NODE_SPEC))
 
 RE_EMAIL = re.compile(r"""(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])""")
 RE_OID = re.compile(r"^(\d+\.)+\d+$")
@@ -204,7 +207,7 @@ _VALIDATE_MAP = {ITEM_OID: _check_oid,
                  ITEM_NUMBER: _check_number,
                  }
 
-def validate_dict(expected: Set, data: Dict) -> None:
+def validate_dict(expected: KeySet, data: Dict[str, str]) -> None:
     """Validates dictionary.
 
     Arguments:
@@ -220,9 +223,9 @@ def validate_dict(expected: Set, data: Dict) -> None:
         missing = expected.difference(given)
         additional = given.difference(expected)
         if missing and not additional:
-            raise ValueError(f'Missing keys: {missing.keys()}')
+            raise ValueError(f'Missing keys: {", ".join(missing)}')
         elif additional and not missing:
-            raise ValueError(f'Found unexpected keys: {additional.keys()}')
+            raise ValueError(f'Found unexpected keys: {", ".join(additional)}')
         else:
             raise ValueError(f'Missing and unexpected keys found')
     # Validate items
@@ -230,7 +233,7 @@ def validate_dict(expected: Set, data: Dict) -> None:
         if item in data:
             checker(data, item)
 
-def validate_spec(data: Dict) -> Dict:
+def validate_spec(data: Dict) -> None:
     """Validates OID specification dictionary.
 
     Arguments:
@@ -265,9 +268,11 @@ def pythonize_spec(data: Dict) -> Dict:
     Arguments:
       data: Dictionary for normalization.
     """
-    data['node'] = pythonize(data['node'])
+    result = {}
+    result['node'] = pythonize(data['node'])
     for i, child in enumerate(data['children']):
-        data['children'][i] = pythonize(child)
+        result['children'][i] = pythonize(child)
+    return result
 
 def get_specification(url: str) -> str:
     """Returns YAML text of OID specification from URL.
@@ -329,23 +334,23 @@ def get_specifications(root: str=ROOT_SPEC) -> Tuple[Dict[str, str], Dict[str, E
             err_map[node] = exc
             return
         if ITEM_CHILDREN not in data:
-            err_map[node] = "Missing children specification"
+            err_map[node] = Exception("Missing children specification")
             return
         for i, child in enumerate(data[ITEM_CHILDREN]):
             if ITEM_NODE_SPEC not in child:
-                err_map[node] = f"Children {i} does not contain node-spec"
+                err_map[node] = Exception(f"Children {i} does not contain node-spec")
                 return
             else:
                 if child[ITEM_NODE_SPEC].lower() not in ('leaf', 'private'):
                     load_tree(child[ITEM_NODE_SPEC])
 
 
-    spec_map = {}
-    err_map = {}
+    spec_map: Dict[str, str] = {}
+    err_map: Dict[str, Exception] = {}
     load_tree(ROOT_SPEC)
     return (spec_map, err_map)
 
-def parse_specifications(specifications: Dict[str, str]) -> Tuple[Dict[str, str], Dict[str, Exception]]:
+def parse_specifications(specifications: Dict) -> Tuple[Dict[str, Dict], Dict[str, Exception]]:
     """Function that parses OID YAML specifications.
 
     Returns tuple with two dictionaries:
@@ -358,13 +363,13 @@ def parse_specifications(specifications: Dict[str, str]) -> Tuple[Dict[str, str]
       specifications: Dictionary with YAML specifications returned by
         `.get_all_specifications()` function.
     """
-    data_map = {}
-    err_map = {}
+    data_map: Dict[str, Dict] = {}
+    err_map: Dict[str, Exception] = {}
     for url, spec in specifications.items():
         try:
             data: Dict = yaml.safe_load(spec)
             validate_spec(data)
-            pythonize_spec(data)
+            data = pythonize_spec(data)
             data_map[url] = data
         except Exception as exc:
             err_map[url] = exc

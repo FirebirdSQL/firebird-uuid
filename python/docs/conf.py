@@ -4,6 +4,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
 import sphinx_bootstrap_theme
+from firebird.uuid.__about__ import __version__
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -13,10 +14,10 @@ copyright = '2022, The Firebird Project'
 author = 'Pavel Císař'
 
 # The short X.Y version
-version = '0.2.0'
+version = __version__
 
 # The full version, including alpha/beta/rc tags
-release = '0.2.0'
+release = __version__
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

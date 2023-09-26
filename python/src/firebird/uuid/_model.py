@@ -1,4 +1,6 @@
-#coding:utf-8
+# SPDX-FileCopyrightText: 2022-present The Firebird Projects <www.firebirdsql.org>
+#
+# SPDX-License-Identifier: MIT
 #
 # PROGRAM/MODULE: firebird-uuid
 # FILE:           firebird/uuid/_model.py
@@ -25,7 +27,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
-# Copyright (c) 2021 Firebird Project (www.firebirdsql.org)
+# Copyright (c) 2022 Firebird Project (www.firebirdsql.org)
 # All Rights Reserved.
 #
 # Contributor(s): Pavel Císař (original code)
@@ -36,7 +38,7 @@
 """
 
 from __future__ import annotations
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Type, Tuple
 from enum import Enum
 from weakref import proxy
 import uuid
@@ -70,39 +72,42 @@ class Node(Distinct):
         node_spec: URL to node TAML specification
         node_type: Node type. If not specified, it's derived from `node_spec`.
     """
-    def __init__(self, *, parent: Node=None, oid: str=None, number: int=None, name: str=None,
-                 description: str=None, contact: str=None, email: str=None, site: str=None,
-                 parent_spec: str=None, node_spec: str=None, node_type: str=None):
+    def __init__(self, *, parent: Optional[Node]=None, oid: Optional[str]=None,
+                 number: Optional[int]=None, name: Optional[str]=None,
+                 description: Optional[str]=None, contact: Optional[str]=None,
+                 email: Optional[str]=None, site: Optional[str]=None,
+                 parent_spec: Optional[str]=None, node_spec: Optional[str]=None,
+                 node_type: Optional[str]=None):
         #: Parent node (or None for ROOT)
-        self.parent: Node = None if parent is None else proxy(parent)
-        self.__oid: str = oid
+        self.parent: Optional[Node] = None if parent is None else proxy(parent)
+        self.__oid: Optional[str] = oid
         #: OID
-        self.oid: str = oid
+        self.oid: Optional[str] = oid
         if number is not None and parent is not None:
             self.oid = parent.oid + '.' + str(number)
         #: UUID
         self.uid: uuid.UUID = uuid.uuid5(uuid.NAMESPACE_OID, self.oid)
         #: Node number (OID part after parent node OID)
-        self.number: int = number
+        self.number: Optional[int] = number
         #: Node name
-        self.name: str = name
+        self.name: Optional[str] = name
         #: Node description
-        self.description: str = description
+        self.description: Optional[str] = description
         #: Name of node administrator
-        self.contact: str = contact
+        self.contact: Optional[str] = contact
         #: E-mail to node administrator
-        self.email: str = email
+        self.email: Optional[str] = email
         #: URL to node administrator home
-        self.site: str = site
+        self.site: Optional[str] = site
         #: URL to parent node specification
-        self.parent_spec: str = parent_spec
+        self.parent_spec: Optional[str] = parent_spec
         if parent_spec is None and parent:
             self.parent_spec = parent.node_spec
         #: URL to node specification
         self.node_spec: Optional[str] = node_spec
-        self.__node_type: NodeType = node_type
+        self.__node_type: Optional[str] = node_type
         #: Node type
-        self.node_type: NodeType = None
+        self.node_type: Optional[NodeType] = None
         if node_type:
             self.node_type = NodeType._value2member_map_.get(node_type.lower())
         elif node_type is None and node_spec:
@@ -142,7 +147,7 @@ class Node(Distinct):
                 'node_type': self.__node_type,
                 }
     @classmethod
-    def from_spec(cls: Node, spec_url: str, data: Tuple[Dict], parent: Node=None) -> Node:
+    def from_spec(cls: Type[Node], spec_url: str, data: Dict, parent: Optional[Node]=None) -> Node:
         """Returns new node from specification.
 
         Arguments:
@@ -180,7 +185,7 @@ def build_tree(nodes: List[Node]) -> Node:
     Raises:
       Error: If list of nodes does not contain ROOT node.
     """
-    def traverse(_root: Node, _node: Node=None) -> None:
+    def traverse(_root: Node, _node: Optional[Node]=None) -> None:
         if _node is None:
             _node = _root
         for i, child in enumerate(_node.children):
@@ -203,4 +208,3 @@ def build_tree(nodes: List[Node]) -> Node:
     #
     traverse(root)
     return root
-
