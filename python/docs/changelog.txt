@@ -6,7 +6,7 @@ Version 0.3.0
 =============
 
 * Switch from setuptools to `hatch <https://hatch.pypa.io/latest/>`_.
-* Update dependency to firebird-base >=1.6.1
+* Update dependency to firebird-base >=1.7.0
 * Package version is now defined in firebird.uuid.__about__.py (__version__)
 
 Version 0.2.0
