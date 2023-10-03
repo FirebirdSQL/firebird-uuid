@@ -22,6 +22,8 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
+  "License :: OSI Approved :: MIT License",
+  "Intended Audience :: Developers",
   "Operating System :: POSIX :: Linux",
   "Operating System :: Microsoft :: Windows",
   "Operating System :: MacOS",
@@ -45,7 +47,10 @@ Source = "https://github.com/FirebirdSQL/firebird-uuid/python"
 [tool.hatch.version]
 path = "src/firebird/uuid/__about__.py"
 
-[tool.hatch.build]
+[tool.hatch.build.targets.sdist]
+include = ["src"]
+
+[tool.hatch.build.targets.wheel]
 packages = ["src/firebird"]
 
 [tool.hatch.envs.default]
@@ -77,8 +82,8 @@ python = ["3.8", "3.9", "3.10", "3.11"]
 detached = false
 platforms = ["linux"]
 dependencies = [
-  "Sphinx>=7.1", 
-  "sphinx-bootstrap-theme>=0.8.1", 
+  "Sphinx>=7.1",
+  "sphinx-bootstrap-theme>=0.8.1",
   "sphinx-autodoc-typehints>=1.24.0",
 ]
 [tool.hatch.envs.doc.scripts]
