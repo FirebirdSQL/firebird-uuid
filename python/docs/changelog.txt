@@ -2,8 +2,20 @@
 Changelog
 #########
 
+Version 0.4.0
+=============
+Released: 2025-04-29
+
+* New `pytest` tests, 97% code coverage.
+* Minimal Python version raised to 3.11.
+* Code cleanup and optimization for Python 3.11 features.
+* Improved documentation.
+* Changed dependency from `toml` to `tomli-w`.
+* Breaking changes: `Node` renamed to `.OIDNode`, `NodeTYpe` renamed to `.OIDNodeType`
+
 Version 0.3.0
 =============
+Released: 2023-10-03
 
 * Switch from setuptools to `hatch <https://hatch.pypa.io/latest/>`_.
 * Update dependency to firebird-base >=1.7.0
@@ -11,11 +23,13 @@ Version 0.3.0
 
 Version 0.2.0
 =============
+Released: 2023-03-02
 
 Breaking change: `registry` renamed to `.oid_registry`.
 
 Version 0.1.0
 =============
+Released: 2022-11-28
 
 Initial release.
 

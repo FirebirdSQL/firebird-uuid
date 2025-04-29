@@ -37,6 +37,6 @@
 
 """
 
-from ._model import NodeType, Node, IANA_ROOT_NAME
-from ._spec import get_specification, get_specifications, parse_specifications, ROOT_SPEC
-from ._registry import oid_registry, OIDRegistry
+from ._model import IANA_ROOT_NAME, OIDNode, OIDNodeType
+from ._registry import OIDRegistry, oid_registry
+from ._spec import ROOT_SPEC, get_specification, get_specifications, parse_specifications

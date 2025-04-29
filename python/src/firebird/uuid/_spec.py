@@ -33,11 +33,16 @@
 # Contributor(s): Pavel Císař (original code)
 #                 ______________________________________
 
-"""Firebird OID registry specification.
+"""Firebird OID registry specification handling.
 
-The OID hierarchy is controlled by a set of YAML files, each file describing one level in
-the tree hierarchy (that is, the root node of the child tree and all assigned nodes for
-children). The `root.oid` file describes the OID of highest level (assigned by IANA).
+This module provides tools for fetching, parsing, validating, and processing
+OID (Object Identifier) hierarchy specifications defined in YAML files. These
+specifications describe nodes within the Firebird OID tree, linking parent
+nodes to children.
+
+The OID hierarchy is controlled by a set of YAML files, each describing one
+level (a parent node and its direct children). The `root.oid` file, typically
+referenced by `ROOT_SPEC`, describes the top-level OID assigned by IANA.
 
 Each file has the following format::
 
@@ -65,21 +70,38 @@ Each file has the following format::
 """
 
 from __future__ import annotations
-from typing import Tuple, Dict, Set
+
 import os
 import re
+from collections.abc import Mapping
+from typing import Any, TypeAlias
 from urllib.request import url2pathname
+
 import requests
 import yaml
 
-KeySet = Set[str]
+KeySet: TypeAlias = set[str]
 
 class LocalFileAdapter(requests.adapters.BaseAdapter):
-    """Protocol Adapter to allow Requests to GET file:// URLs
+    """A requests Session adapter to allow fetching `file://` URLs.
+
+    Standard `requests` does not handle local file paths directly. This adapter
+    enables `requests.Session` objects to GET content from `file://` URIs
+    by mounting it to the 'file://' prefix.
     """
     @staticmethod
-    def _chkpath(method, path):
-        """Return an HTTP status for the given filesystem path."""
+    def _chkpath(method: str, path: str) -> tuple[int, str]:
+        """Checks filesystem path validity and access for common HTTP methods.
+
+        Arguments:
+            method: The HTTP method requested (e.g., 'GET', 'HEAD').
+            path: The local filesystem path derived from the URL.
+
+        Returns:
+            A tuple containing an HTTP-like status code (int) and a
+            reason phrase (str). Checks for method allowance, path type
+            (file vs. directory), existence, and read permissions.
+        """
         if method.lower() in ('put', 'delete'):
             return 501, "Not Implemented"  # TODO
         elif method.lower() not in ('get', 'head'):
@@ -93,17 +115,29 @@ class LocalFileAdapter(requests.adapters.BaseAdapter):
         else:
             return 200, "OK"
 
-    def send(self, req, **kwargs):  # pylint: disable=unused-argument
-        """Return the file specified by the given request
+    def send(self, req: requests.PreparedRequest, **kwargs) -> requests.Response:  # noqa: ARG002
+        """Handles a prepared request for a `file://` URL.
+
+        Normalizes the path, checks its validity using `_chkpath`, and if valid
+        (status 200), attempts to open the file for reading. It constructs and
+        returns a `requests.Response` object containing the file content (raw)
+        or an appropriate error status.
+
+        Arguments:
+            req: The `requests.PreparedRequest` object.
+            **kwargs: Additional keyword arguments (unused, part of adapter signature).
+
+        Returns:
+            A `requests.Response` object.
         """
         path = os.path.normcase(os.path.normpath(url2pathname(req.path_url)))
         response = requests.Response()
 
         response.status_code, response.reason = self._chkpath(req.method, path)
-        if response.status_code == 200 and req.method.lower() != 'head':
+        if response.status_code == 200 and req.method.lower() != 'head': # noqa: PLR2004
             try:
                 response.raw = open(path, 'rb')
-            except (OSError, IOError) as err:
+            except OSError as err:
                 response.status_code = 500
                 response.reason = str(err)
 
@@ -117,80 +151,123 @@ class LocalFileAdapter(requests.adapters.BaseAdapter):
 
         return response
 
-    def close(self):
-        pass
+    def close(self) -> None:
+        """Closes the adapter.
+
+        This is a no-op for the file adapter as there are no persistent
+        connections to close.
+        """
 
 #: URL for ROOT specification
-ROOT_SPEC = 'https://raw.githubusercontent.com/FirebirdSQL/firebird-uuid/master/root.oid'
+ROOT_SPEC: str = 'https://raw.githubusercontent.com/FirebirdSQL/firebird-uuid/master/root.oid'
 
-ITEM_NODE = 'node'
-ITEM_OID = 'oid'
-ITEM_CHILDREN = 'children'
-ITEM_NAME = 'name'
-ITEM_DESCRIPTION = 'description'
-ITEM_CONTACT = 'contact'
-ITEM_EMAIL = 'email'
-ITEM_SITE = 'site'
-ITEM_PARENT_SPEC = 'parent-spec'
-ITEM_TYPE = 'type'
-ITEM_NODE_SPEC = 'node-spec'
-ITEM_NUMBER = 'number'
+ITEM_NODE: str = 'node'
+ITEM_OID: str = 'oid'
+ITEM_CHILDREN: str = 'children'
+ITEM_NAME: str = 'name'
+ITEM_DESCRIPTION: str = 'description'
+ITEM_CONTACT: str = 'contact'
+ITEM_EMAIL: str = 'email'
+ITEM_SITE: str = 'site'
+ITEM_PARENT_SPEC: str = 'parent-spec'
+ITEM_TYPE: str = 'type'
+ITEM_NODE_SPEC: str = 'node-spec'
+ITEM_NUMBER: str = 'number'
 
-#KEY_ITEMS = (ITEM_OID, ITEM_NAME, ITEM_DESCRIPTION, ITEM_CONTACT, ITEM_EMAIL, ITEM_SITE,
-             #ITEM_TYPE, ITEM_NODE_SPEC)
+SPEC_ITEMS: KeySet = {ITEM_NODE, ITEM_CHILDREN}
+NODE_ITEMS: KeySet = {ITEM_OID, ITEM_NAME, ITEM_DESCRIPTION, ITEM_CONTACT, ITEM_EMAIL,
+                      ITEM_SITE, ITEM_PARENT_SPEC, ITEM_TYPE}
+CHILD_ITEMS: KeySet = {ITEM_NUMBER, ITEM_NAME, ITEM_DESCRIPTION, ITEM_CONTACT, ITEM_EMAIL,
+                       ITEM_SITE, ITEM_NODE_SPEC}
 
-SPEC_ITEMS: KeySet = set((ITEM_NODE, ITEM_CHILDREN))
-NODE_ITEMS: KeySet = set((ITEM_OID, ITEM_NAME, ITEM_DESCRIPTION, ITEM_CONTACT, ITEM_EMAIL,
-                          ITEM_SITE, ITEM_PARENT_SPEC, ITEM_TYPE))
-CHILD_ITEMS: KeySet = set((ITEM_NUMBER, ITEM_NAME, ITEM_DESCRIPTION, ITEM_CONTACT, ITEM_EMAIL,
-                           ITEM_SITE, ITEM_NODE_SPEC))
+RE_EMAIL: re.Pattern[str] = re.compile(r"""(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])""")
+RE_OID: re.Pattern[str] = re.compile(r"^(?:\d+|\d+(\.\d+)+)$")
+RE_NAME: re.Pattern[str] = re.compile(r"^[a-zA-Z0-9_\-]+$")
+RE_URL_OR_PATH: re.Pattern[str] = re.compile(r'^(?:(?:https?|file)://|/|(?:\./|\.\./))(?:[^\s"]*)', re.IGNORECASE)
+TYPE_VALUES: set[str] = {'root', 'node', 'leaf'}
+NODE_KEYWORDS: set[str] = {'private', 'leaf'}
 
-RE_EMAIL = re.compile(r"""(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])""")
-RE_OID = re.compile(r"^(\d+\.)+\d+$")
-RE_NAME = re.compile(r"^[a-zA-Z0-9_\-]+$")
-TYPE_VALUES = ('root', 'node', 'leaf')
-NODE_KEYWORDS = ('private', 'leaf')
+def _check_string(data: dict, item: str) -> None:
+    """Checks if the value for `item` in `data` is a non-empty string.
 
-def _check_string(data: Dict, item: str) -> None:
+    Raises:
+        ValueError: If the value is not a non-empty string.
+    """
     value = data[item]
     if not isinstance(value, str) or not value.strip():
         raise ValueError(f"String value required for '{item}', found '{value}'")
 
-def _check_number(data: Dict, item: str) -> None:
+def _check_number(data: Mapping[str, Any], item: str) -> None:
+    """Checks if the value for `item` in `data` is a non-negative integer.
+
+    Raises:
+        ValueError: If the value is not a non-negative integer.
+    """
     value = data[item]
     if not isinstance(value, int) or value < 0:
         raise ValueError(f"Non-negative number value required for '{item}', found '{value}'")
 
 
-def _check_email(data: Dict, item: str) -> None:
+def _check_email(data: Mapping[str, Any], item: str) -> None:
+    """Checks if the value for `item` in `data` is a valid, non-empty email string.
+
+    Raises:
+        ValueError: If the value is not a string or does not match the email pattern.
+    """
     _check_string(data, item)
     value = data[item]
     if RE_EMAIL.fullmatch(value) is None:
         raise ValueError(f"E-mail value required for '{item}', found '{value}'")
 
-def _check_oid(data: Dict, item: str) -> None:
+def _check_oid(data: Mapping[str, Any], item: str) -> None:
+    """Checks if the value for `item` in `data` is a valid, non-empty OID string.
+
+    Raises:
+        ValueError: If the value is not a string or does not match the OID pattern.
+    """
     _check_string(data, item)
     value = data[item]
     if RE_OID.fullmatch(value) is None:
         raise ValueError(f"OID value required for '{item}'")
 
-def _check_name(data: Dict, item: str) -> None:
+def _check_name(data: Mapping[str, Any], item: str) -> None:
+    """Checks if the value for `item` in `data` is a valid, non-empty name.
+
+    Raises:
+        ValueError: If the value is not a string or does not match the name pattern.
+    """
     _check_string(data, item)
     value = data[item]
     if RE_NAME.fullmatch(value) is None or value.lower() != value:
         raise ValueError(f"Single lowercase word required for '{item}', found '{value}'")
 
-def _check_parent_spec(data: Dict, item: str) -> None:
+def _check_parent_spec(data: Mapping[str, Any], item: str) -> None:
     if data['type'] != 'root' and (not isinstance(item, str) or not item.strip()):
         raise ValueError(f"String value required for '{item}'")
 
-def _check_node_spec(data: Dict, item: str) -> None:
+def _check_node_spec(data: Mapping[str, Any], item: str) -> None:
     _check_string(data, item)
     value = data[item]
-    if RE_NAME.fullmatch(value) is not None and value not in NODE_KEYWORDS:
-        raise ValueError(f"Either URL or keyword required for '{item}'")
+    if value in NODE_KEYWORDS:
+        return
+    if RE_URL_OR_PATH.fullmatch(value):
+        # Optional: Add more specific checks using urlparse if needed
+        # from urllib.parse import urlparse
+        # try:
+        #     parsed = urlparse(value)
+        #     if not parsed.scheme or not (parsed.netloc or parsed.path):
+        #          raise ValueError("Parsed URL seems invalid")
+        # except ValueError:
+        #      raise ValueError(f"Value for '{item}' ('{value}') is not a valid keyword or parsable URL/path.")
+        return
+    raise ValueError(f"Either URL or keyword required for '{item}'")
 
-def _check_type(data: Dict, item: str) -> None:
+def _check_type(data: Mapping[str, Any], item: str) -> None:
+    """Checks if the value for `item` in `data` is a valid node type.
+
+    Raises:
+        ValueError: If the value is not a string or is not from alloved node type names.
+    """
     _check_string(data, item)
     value = data[item]
     if value not in TYPE_VALUES:
@@ -207,16 +284,20 @@ _VALIDATE_MAP = {ITEM_OID: _check_oid,
                  ITEM_NUMBER: _check_number,
                  }
 
-def validate_dict(expected: KeySet, data: Dict[str, str]) -> None:
-    """Validates dictionary.
+def validate_dict(expected: KeySet, data: Mapping[str, Any]) -> None:
+    """Validates a dictionary's keys and the format/type of its values.
+
+    Checks if the dictionary `data` contains exactly the keys specified in
+    `expected`. It then uses specific checker functions (defined in
+    `_VALIDATE_MAP`) to validate the type and format of values for known keys.
 
     Arguments:
-      expected: Set of expected keys.
-      data:     Validated dictionary.
+        expected: A set of expected key names (strings).
+        data: The dictionary to validate.
 
     Raises:
-      ValueError: When any keys are missing or additional keys are present, or when
-        values do not conform to specification.
+        ValueError: If keys are missing, unexpected keys are present, or if
+            any value fails its specific validation check.
     """
     given = set(data.keys())
     if expected != given:
@@ -227,33 +308,44 @@ def validate_dict(expected: KeySet, data: Dict[str, str]) -> None:
         elif additional and not missing:
             raise ValueError(f'Found unexpected keys: {", ".join(additional)}')
         else:
-            raise ValueError(f'Missing and unexpected keys found')
+            raise ValueError('Missing and unexpected keys found')
     # Validate items
     for item, checker in _VALIDATE_MAP.items():
         if item in data:
             checker(data, item)
 
-def validate_spec(data: Dict) -> None:
-    """Validates OID specification dictionary.
+def validate_spec(data: Mapping[str, Any]) -> None:
+    """Validates the structure and content of a parsed OID specification dictionary.
+
+    Ensures the top-level structure is correct (`node`, `children`) and then uses
+    `validate_dict` to check the contents of the 'node' dictionary and each
+    dictionary within the 'children' list against their respective required
+    formats and value constraints.
 
     Arguments:
-      data:     Dictiorary with parsed OID YAML specification.
+        data: Dictionary parsed from an OID YAML specification file.
 
     Raises:
-      ValueError: When any keys are missing or additional keys are present, or when
-        values do not conform to specification.
+        ValueError: If the structure is invalid, keys are missing/unexpected,
+            or values do not conform to the specification format rules.
     """
     validate_dict(SPEC_ITEMS, data)
     validate_dict(NODE_ITEMS, data['node'])
     for child in data['children']:
         validate_dict(CHILD_ITEMS, child)
 
-def pythonize(data: Dict) -> Dict:
-    """Returns dictionary with normalized key names for use as keyword parameters to
-    `.Node` __init__ method.
+def pythonize(data: Mapping[str, Any]) -> dict[str, Any]:
+    """Normalizes dictionary keys for use as Python keyword arguments.
+
+    Converts keys with hyphens (e.g., 'parent-spec') to use underscores
+    (e.g., 'parent_spec'). Also renames the 'type' key to 'node_type'.
+    Typically used on 'node' or 'children' item dictionaries parsed from YAML.
 
     Arguments:
-      data: Dictionary for normalization.
+        data: The input dictionary (e.g., a node or child definition).
+
+    Returns:
+        A new dictionary with normalized keys.
     """
     result = {key.replace('-', '_'): value for key, value in data.items()}
     if 'type' in result:
@@ -261,27 +353,41 @@ def pythonize(data: Dict) -> Dict:
         del result['type']
     return result
 
-def pythonize_spec(data: Dict) -> Dict:
-    """Returns dictionary of parsed OID specification with normalized key names for use as
-    keyword parameters to `.Node` __init__ method.
+def pythonize_spec(data: Mapping[str, Any]) -> dict[str, any]:
+    """Applies key normalization (`pythonize`) to an entire OID specification dictionary.
 
-    Arguments:
-      data: Dictionary for normalization.
+    Processes the 'node' dictionary and all dictionaries within the 'children'
+    list, preparing the whole structure for easier use within Python code,
+    such as instantiating `OIDNode` objects.
+
+    Args:
+        data: The complete, parsed OID specification dictionary.
+
+    Returns:
+        A new dictionary representing the specification with normalized keys.
     """
     result = {}
     result['node'] = pythonize(data['node'])
-    for i, child in enumerate(data['children']):
+    result['children'] = data.get('children', [])
+    for i, child in enumerate(result['children']):
         result['children'][i] = pythonize(child)
     return result
 
 def get_specification(url: str) -> str:
-    """Returns YAML text of OID specification from URL.
+    """Fetches the text content of an OID specification from a URL.
+
+    Supports both HTTP(S) and local `file://` URLs via a configured
+    `requests.Session`.
 
     Arguments:
-        url: URL of OID specification.
+        url: The URL (http, https, or file) of the OID specification YAML file.
+
+    Returns:
+        The YAML text content of the specification.
 
     Raises:
-      requests.HTTPError: If one occurred.
+        requests.exceptions.RequestException: If a network or file access error occurs.
+        requests.exceptions.HTTPError: If an HTTP error response (e.g., 404) is received.
     """
     requests_session = requests.session()
     requests_session.mount('file://', LocalFileAdapter())
@@ -291,39 +397,27 @@ def get_specification(url: str) -> str:
         spec_req.raise_for_status()
     return spec_req.text
 
-#def parse_spec(spec: str) -> Dict:
-    #"""Returns dictionary with parsed OID specification.
+def get_specifications(root: str=ROOT_SPEC) -> tuple[dict[str, str], dict[str, Exception]]:
+    """Recursively fetches all OID YAML specifications starting from a root URL.
 
-    #Dictionary keys are normalized to Python identifiers (dash replaced with undersore),
-    #and `type` is renamed to `node_type`.
+    Traverses the tree of specifications by following 'node-spec' URLs found in
+    child definitions. It collects the raw YAML text of successfully fetched
+    specifications and records any exceptions encountered during fetching or
+    initial YAML parsing (needed to find child URLs).
 
-    #Arguments:
-        #spec: OID specification in YAML format.
-
-    #Raises:
-      #YAMLError: If specification is not valid YAML.
-      #ValueError: If specification does not conform to specification format.
-    #"""
-    #data = yaml.safe_load(spec)
-    #validate_spec(data)
-    #pythonize_spec(data)
-    #return data
-
-def get_specifications(root: str=ROOT_SPEC) -> Tuple[Dict[str, str], Dict[str, Exception]]:
-    """Function traverses the tree of OID YAML specifications, and returns accessible YAML
-    specifications and errors encountered during tree traversal.
-
-    This function does not perform any validation of loaded specifications beoynd checks
-    and transformations needed to parse the YAML to get links to child specifications.
-
-    Returns tuple with two dictionaries:
-      - First dictionary contains `url: spec_yaml` with all YAML specifications
-        that were successfuly fetched.
-      - Second dictionary contains `url: Exception` with all errors encountered
-        during tree traversal.
+    This function performs only minimal validation necessary to navigate the tree.
 
     Arguments:
-      root: URL to root specification where tree traversal should begin.
+        root: The URL of the root specification to start traversal from.
+              Defaults to `ROOT_SPEC`.
+
+    Returns:
+        A tuple containing two dictionaries:
+
+        1.  `spec_map`: `dict[str, str]` mapping URL to successfully fetched
+            YAML content (string).
+        2.  `err_map`: `dict[str, Exception]` mapping URL to the Exception
+            encountered while trying to fetch or minimally parse that spec.
     """
     def load_tree(node: str) -> None:
         try:
@@ -340,34 +434,39 @@ def get_specifications(root: str=ROOT_SPEC) -> Tuple[Dict[str, str], Dict[str, E
             if ITEM_NODE_SPEC not in child:
                 err_map[node] = Exception(f"Children {i} does not contain node-spec")
                 return
-            else:
-                if child[ITEM_NODE_SPEC].lower() not in ('leaf', 'private'):
-                    load_tree(child[ITEM_NODE_SPEC])
+            elif child[ITEM_NODE_SPEC].lower() not in ('leaf', 'private'):
+                load_tree(child[ITEM_NODE_SPEC])
 
-
-    spec_map: Dict[str, str] = {}
-    err_map: Dict[str, Exception] = {}
-    load_tree(ROOT_SPEC)
+    spec_map: dict[str, str] = {}
+    err_map: dict[str, Exception] = {}
+    load_tree(root)
     return (spec_map, err_map)
 
-def parse_specifications(specifications: Dict) -> Tuple[Dict[str, Dict], Dict[str, Exception]]:
-    """Function that parses OID YAML specifications.
+def parse_specifications(specifications: dict[str, str]) -> tuple[dict[str, dict], dict[str, Exception]]:
+    """Parses, validates, and normalizes multiple OID YAML specifications.
 
-    Returns tuple with two dictionaries:
-      - First dictionary contains `url: spec_dict`, where dictionaries contain data
-        from successfuly parsed and validated OID YAML specifications.
-      - Second dictionary contains `url: Exception` with errors encountered during parsing
-        and validation.
+    Takes a dictionary of raw YAML specification strings (typically from
+    `get_specifications`), parses each string into a Python dictionary,
+    validates its structure and content against the defined format, and
+    normalizes keys (e.g., 'node-spec' to 'node_spec') using `pythonize_spec`.
 
     Arguments:
-      specifications: Dictionary with YAML specifications returned by
-        `.get_all_specifications()` function.
+        specifications: A dictionary mapping specification URLs (str) to their
+                        raw YAML content (str).
+
+    Returns:
+        A tuple containing two dictionaries:
+
+        1.  `data_map`: `dict[str, dict]` mapping URL to the successfully parsed,
+            validated, and key-normalized specification data (dictionary).
+        2.  `err_map`: `dict[str, Exception]` mapping URL to the Exception
+            encountered during YAML parsing or validation for that spec.
     """
-    data_map: Dict[str, Dict] = {}
-    err_map: Dict[str, Exception] = {}
+    data_map: dict[str, dict] = {}
+    err_map: dict[str, Exception] = {}
     for url, spec in specifications.items():
         try:
-            data: Dict = yaml.safe_load(spec)
+            data: dict = yaml.safe_load(spec)
             validate_spec(data)
             data = pythonize_spec(data)
             data_map[url] = data

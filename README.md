@@ -24,38 +24,38 @@ The UUID RFC pre-defines four namespaces:
 
 ## ISO OID
 
-An OID is a globally unique [ISO](http://www.iso.org/iso/en/ISOOnline.frontpage) identifier. 
-There are multiple ways that this identifier may be represented, and Firebird Foundation has 
-chosen to represent OID registered here using a form that consists only of numbers and dots 
-(e.g., "1.3.6.1.4.1.53446.1"). OIDs are paths in a tree structure, with the left-most number 
+An OID is a globally unique [ISO](http://www.iso.org/iso/en/ISOOnline.frontpage) identifier.
+There are multiple ways that this identifier may be represented, and Firebird Foundation has
+chosen to represent OID registered here using a form that consists only of numbers and dots
+(e.g., "1.3.6.1.4.1.53446.1"). OIDs are paths in a tree structure, with the left-most number
 representing the root and the right-most number representing a leaf.
 
-Each OID is created by a Registration Authority. Each of these authorities may, in turn, 
-delegate assignment of new OIDs under it to other registration authorities that work under its 
-auspices, and so on down the line. Eventually, one of these authorities assigns a unique (to it) 
-number that corresponds to a leaf node on the tree. The leaf may represent a registration authority 
-(in which case the OID identifies the authority), or an instance of an object. A registration 
+Each OID is created by a Registration Authority. Each of these authorities may, in turn,
+delegate assignment of new OIDs under it to other registration authorities that work under its
+auspices, and so on down the line. Eventually, one of these authorities assigns a unique (to it)
+number that corresponds to a leaf node on the tree. The leaf may represent a registration authority
+(in which case the OID identifies the authority), or an instance of an object. A registration
 authority owns the namespace consisting of its sub-tree.
 
-The [Firebird Foundation Incorporated](https://firebirdsql.org/en/firebird-foundation) obtained 
-a [PEN](https://www.iana.org/assignments/enterprise-numbers/enterprise-numbers) (Private Enterprise 
-Number) from [IANA](https://www.iana.org), and thus become a registered owner of OID _1.3.6.1.4.1.53446_ 
-(iso.org.dod.internet.private.enterprise.firebird-foundation-inc). This repository is used to manage 
-sub-tree of OIDs under this namespace, that are used by Firebird Foundation and 
+The [Firebird Foundation Incorporated](https://firebirdsql.org/en/firebird-foundation) obtained
+a [PEN](https://www.iana.org/assignments/enterprise-numbers/enterprise-numbers) (Private Enterprise
+Number) from [IANA](https://www.iana.org), and thus become a registered owner of OID _1.3.6.1.4.1.53446_
+(iso.org.dod.internet.private.enterprise.firebird-foundation-inc). This repository is used to manage
+sub-tree of OIDs under this namespace, that are used by Firebird Foundation and
 the [Firebird Project](https://www.firebirdsql.org).
 
 # How it works
 
-The OID hierarchy is controlled by a set of YAML files, each file describing one level 
-in the tree hierarchy (that is, the root node of the child tree and all assigned nodes 
-for children). The [root.oid](https://github.com/FirebirdSQL/firebird-uuid/blob/master/root.oid) file 
+The OID hierarchy is controlled by a set of YAML files, each file describing one level
+in the tree hierarchy (that is, the root node of the child tree and all assigned nodes
+for children). The [root.oid](https://github.com/FirebirdSQL/firebird-uuid/blob/master/root.oid) file
 in this repository describes the OID of highest level (assigned by IANA).
 
 Each file has the following format:
 
 ```yaml
 # Description of root node for this sub-tree
-node:            
+node:
   oid:           # Full OID, for example 1.3.6.1.4.1.53446
   name:          # Node name
   description:   # Node description
@@ -67,7 +67,7 @@ node:
 
 # List of children nodes in order of numbers assigned to them
 # could be omitted for leaf node (see node.type)
-children:        
+children:
   - number:      # Number assigned to this child node, oid = node.oid + '.' + number
     name:        # Node name
     description: # Node description, could be empty
@@ -79,10 +79,10 @@ children:
 
 **All fields must be present, and if not specified otherwise, they must have a value.**
 
-Fields `name`,`description`,`contact`,`email` and `site` in `children` record SHOULD have 
-the same values like fields of the same name in `node` record of the YAML file describing 
-the child node. If they differ in content, the values present in `node` record take precedence 
-over values present in `children` record.
+Fields `name`,`description`,`contact`,`email` and `site` in `children` record SHOULD have
+the same values like fields of the same name in `node` record of the YAML file describing
+the child node. If they differ in content, the values present in `children` record (parent)
+take precedence over values present in `node` record (child).
 
 # Using OIDs to generate UUIDs
 

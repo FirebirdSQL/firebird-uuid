@@ -12,6 +12,6 @@ Firebird-uuid Reference
 .. autofunction:: get_specifications
 .. autofunction:: parse_specifications
 
-.. autoclass:: NodeType
-.. autoclass:: Node
+.. autoclass:: OIDNodeType
+.. autoclass:: OIDNode
 .. autoclass:: OIDRegistry
