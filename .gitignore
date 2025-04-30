@@ -134,6 +134,7 @@ dmypy.json
 
 # Sphinx build
 python/docs/_build
+python/docs/firebird-uuid.docset
 
 # Local dev
 python/work
