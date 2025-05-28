@@ -5,7 +5,13 @@ Firebird-uuid Reference
 #######################
 
 .. autodata:: ROOT_SPEC
+
+   **URL for ROOT specification**
+
 .. autodata:: IANA_ROOT_NAME
+
+   **IANA name before Firebird namespace. Does not contain trailing dot.**
+
 .. autodata:: oid_registry
 
 .. autofunction:: get_specification

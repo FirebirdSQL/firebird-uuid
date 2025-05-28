@@ -61,20 +61,18 @@ NONE_VALUE = "None"
 
 class OIDNodeType(Enum):
     """Enumeration of possible types for an `OIDNode`.
-
-    Attributes:
-        ROOT: The top-level node in a specific OID specification file.
-              Only one true root (from IANA) exists in the full conceptual tree.
-        LEAF: A terminal node in the hierarchy; it cannot have children defined
-              in a separate specification file.
-        PRIVATE: A node reserved for private use, similar to a LEAF in that it
-                 does not link to a separate specification file for children.
-        NODE: An intermediate node that references another specification file
-              (via `node_spec`) to define its children.
     """
+    #: The top-level node in a specific OID specification file.
+    #: Only one true root (from IANA) exists in the full conceptual tree.
     ROOT = 'root'
+    #: A terminal node in the hierarchy; it cannot have children defined
+    #: in a separate specification file.
     LEAF = 'leaf'
+    #: A node reserved for private use, similar to a LEAF in that it
+    #: does not link to a separate specification file for children.
     PRIVATE = 'private'
+    #: An intermediate node that references another specification file
+    #: (via `node_spec`) to define its children.
     NODE = 'node'
 
 class OIDNode(Distinct):

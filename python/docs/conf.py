@@ -10,7 +10,7 @@ from firebird.uuid.__about__ import __version__
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'firebird-uuid'
-copyright = '2022, The Firebird Project'
+copyright = '2022-present, The Firebird Project'
 author = 'Pavel Císař'
 
 # The short X.Y version
@@ -70,6 +70,7 @@ html_theme_options = {
     # an arbitrary url.
     'navbar_links': [
         #("Usage Guide", "usage-guide"),
+        ("Introduction", "introduction"),
         ("Reference", "reference"),
         ("Index", "genindex"),
     ],

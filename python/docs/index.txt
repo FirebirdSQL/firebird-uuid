@@ -2,8 +2,8 @@
 Firebird UUID Management
 ########################
 
-The `firebird-uuid` package provides the official tools for working with the OID namespace 
-managed by the `Firebird project`_.
+The `firebird-uuid` package provides the official tools for working with the OID namespace
+managed by the `Firebird project`_ at `GitHub <https://github.com/FirebirdSQL/firebird-uuid>`_.
 
 Content
 *******
@@ -12,6 +12,7 @@ Content
    :maxdepth: 2
    :caption: Contents:
 
+   introduction
    reference
    changelog
 

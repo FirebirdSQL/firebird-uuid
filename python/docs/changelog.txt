@@ -2,6 +2,13 @@
 Changelog
 #########
 
+Version 1.0.0
+=============
+Released: 2025-05-28
+
+* Promoted to stable
+* Improved documentation
+
 Version 0.4.0
 =============
 Released: 2025-04-29
@@ -11,7 +18,7 @@ Released: 2025-04-29
 * Code cleanup and optimization for Python 3.11 features.
 * Improved documentation.
 * Changed dependency from `toml` to `tomli-w`.
-* Breaking changes: `Node` renamed to `.OIDNode`, `NodeTYpe` renamed to `.OIDNodeType`
+* Breaking changes: `Node` renamed to `.OIDNode`, `NodeType` renamed to `.OIDNodeType`
 
 Version 0.3.0
 =============

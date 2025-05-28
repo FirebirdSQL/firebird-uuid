@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.0.0] - 2025-05-28
+
+### Changed
+
+- Promoted to stable
+- Improved documentation
+
 ## [0.4.0] - 2025-04-29
 
 ### Added
@@ -16,7 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Code cleanup and optimization for Python 3.11 features.
 - Improved documentation.
 - Changed dependency from `toml` to `tomli-w`.
-- Breaking changes: `Node` renamed to `OIDNode`, `NodeTYpe` renamed to `OIDNodeType`
+- Breaking changes: `Node` renamed to `OIDNode`, `NodeType` renamed to `OIDNodeType`
 
 ## [0.3.0] - 2023-10-03
 

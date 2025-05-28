@@ -99,7 +99,7 @@ class OIDRegistry(Registry):
             self.update(node.children)
         self.update(nodes)
         build_tree(self._reg.values())
-    def update_from_toml(self, toml: str) -> None:
+    def update_from_toml(self, toml_data: str) -> None:
         """Updates the registry by loading node data from a TOML document string.
 
         Parses the TOML string, which is expected to contain a dictionary mapping
@@ -108,7 +108,7 @@ class OIDRegistry(Registry):
 
         Performs validation checks before loading:
 
-        - Ensures the TOML data either defines a root node (`node_type`='root'
+        - Ensures the TOML data either defines a root node (node_type='root'
           and no 'parent') or contains at least one node whose parent UUID
           already exists in the current registry.
         - If a root node is defined in the TOML and a root node is already
@@ -136,7 +136,7 @@ class OIDRegistry(Registry):
             KeyError: If essential keys like 'node_type' are missing in the TOML data
                       for a node.
         """
-        data: dict[str, Any] = loads(toml)
+        data: dict[str, Any] = loads(toml_data)
         # Validate data
         known: set[uuid.UUID] = set(self.keys())
         has_root_node: bool = False

@@ -14,7 +14,7 @@ authors = [
   { name = "Pavel Cisar", email = "pcisar@users.sourceforge.net" },
 ]
 classifiers = [
-  "Development Status :: 4 - Beta",
+  "Development Status :: 5 - Production/Stable",
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
@@ -58,24 +58,6 @@ allow-direct-references = true
 [tool.hatch.envs.default]
 dependencies = [
 ]
-
-[tool.hatch.envs.test]
-dependencies = [
-  "coverage[toml]>=6.5",
-  "pytest",
-]
-[tool.hatch.envs.test.scripts]
-test = "pytest {args:tests}"
-test-cov = "coverage run -m pytest {args:tests}"
-cov-report = [
-  "- coverage combine",
-  "coverage report",
-]
-cov = [
-  "test-cov",
-  "cov-report",
-]
-version = "python --version"
 
 [[tool.hatch.envs.hatch-test.matrix]]
 python = ["3.11", "3.12", "3.13"]
